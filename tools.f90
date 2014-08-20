@@ -94,7 +94,7 @@ implicit none
 	freqmax=-1.0
 	ampmax=-1.0
 	do i=1,n
-		if ((fs(1,i).le.fmax).and.(fs(1,i).ge.fmin).and.(fs(3,i).ne.0.0)) then
+		if ((fs(1,i).le.fmax).and.(fs(1,i).ge.fmin).and.(fs(3,i).eq.1.0)) then
 			if (fs(2,i).gt.ampmax) then
 				ampmax=fs(2,i)
 				freqmax=fs(1,i)

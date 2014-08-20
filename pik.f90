@@ -70,7 +70,8 @@ implicit none
 	integer :: n,k
 	logical :: czy_zo, czy_bl, ifAny
 
-	
+		czy_zo=.false.
+		czy_bl=.false.
 
 		call maximum(fs,n,fp,ap,fmin,fmax,k)
 		if (SNR(fs,n,fp,0.2).gt.4.0) then
@@ -79,8 +80,6 @@ implicit none
 				czy_zo=.true.		
 			else
 				czy_bl=.true.
-		!		fmax=max(f+2*abs(f-fp)+r,f+0.2)
-		!		fmin=min(f-2*abs(f-fp)-r,f-0.2)
 			end if
 		else
 			ifAny=.false.

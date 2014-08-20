@@ -3,12 +3,12 @@ implicit none
 
 CONTAINS
 
-SUBROUTINE flagi(f,fx,plik,period_ch,czy_al,czy_bl,czy_mod,czy_p2,czy_trend,czy_zo)
+SUBROUTINE flagi(f,fx,star,periodChar,blazkoF,modF,zoF,remF,trendF,p2F,outputFile)
 implicit none
 
-	character (len=*) :: plik,period_ch
+	character (len=*) :: star,outputFile,periodChar
 	real (kind=8) :: f,fx
-	logical :: czy_al,czy_bl,czy_mod,czy_p2,czy_trend,czy_zo
+	logical :: blazkoF,modF,zoF,remF,trendF,p2F
 
 	character (len=500) :: line,pom
 	character (len=20) :: sx_ch
@@ -19,53 +19,49 @@ implicit none
 	
 	write (sx_ch,*) sx
 	
-	line=plik(0:len_trim(plik)-4)//" "//trim(period_ch)//" "//trim(sx_ch)
+	line=trim(star)//" "//trim(periodChar)//" "//trim(sx_ch)
 	
-	if (czy_bl) then
+	if (blazkoF) then
 		pom=line
 		line=trim(pom)//" BL "
 	end if
 			
-	if (czy_trend) then
+	if (trendF) then
 		pom=line
 		line=trim(pom)//" T "
 	end if
 
-	if (czy_zo) then
+	if (zoF) then
 		pom=line
 		line=trim(pom)//" ZO "
 	end if
 	
-	if (czy_p2) then
+	if (p2F) then
 		pom=line
 		line=trim(pom)//" P2 "
 	end if
 	
-	if (czy_mod) then
+	if (modF) then
 		pom=line
 		line=trim(pom)//" MOD "
 	end if
 	
-	if (czy_al) then
-		pom=line
-		line=trim(pom)//" AL "
-	end if
-
-	!write (*,*) 
-
-	!pom=line
-	!line=trim(pom)//trim(bl)
-
-	!write (*,*) trim(line)
-	!write (*,*) trim(blazko)
+!	if (czy_al) then
+!		pom=line
+!		line=trim(pom)//" AL "
+!	end if
 	
-	call system('echo " '//trim(line)//' " >> rrc2.txt')
+	if (outputFile.eq.' ') then
+		write (*,*) line
+	else
+		call system('echo " '//trim(line)//' " >> '//trim(outputFile))
+	end if
 
 end subroutine
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-SUBROUTINE get_arg(star,period,f,r)
+SUBROUTINE get_arg(star,period,period_ch,f,r)
 implicit none
 
 	character (len=30) :: star
@@ -109,7 +105,8 @@ implicit none
 	write (*,*) 'Plik: ',plik
 	n=ile_wierszy(fileNumber)
 	write (*,*) n,'rows to read'
-	allocate (fs(3,n)) !1-freq,2-amp,3-zero/jeden
+	if (.not. allocated(fs)) allocate (fs(3,n)) !1-freq,2-amp,3-zero/jeden
+	
 	call getp(fs,fileNumber,n)
 	
 	close (fileNumber)

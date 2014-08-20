@@ -91,7 +91,7 @@ implicit none
 	
 	open(10,file='komendy.exec')
 		write (10,*) read
-		write (10,*) 'f= ',freqToFit(1)
+		write (10,100) 'f= ',freqToFit(1)%freq
 		do i=2,9
 			if (freqToFit(i)%exst.eqv..true.) then
 				write (10,200) freqToFit(i)%namef,'=',freqToFit(i)%freq
@@ -126,6 +126,7 @@ implicit none
 		end do
 	close(20)
 	
+	100 FORMAT (a2,f18.16)
 	200 FORMAT (2a1,f18.16)
 	
 end subroutine
@@ -143,7 +144,7 @@ if (freq.eq.0.00002) then
 	freqToFit(2)%freq=0.00002
 	freqToFit(2)%exst=.true.
 else
-	do i=1,9
+	do i=3,9
 		if (freqToFit(i)%exst.eqv..false.) then
 			freqToFit(i)%freq=freq
 			freqToFit(i)%exst=.true.

@@ -5,6 +5,7 @@ use frequencies
 implicit none
 
 	character (len=30) :: fileName,star
+	character (len=30) :: outputFile=' '
 	character (len=30) :: periodChar
 	character (len=500) :: sys 
 	
@@ -28,12 +29,14 @@ implicit none
 !	real(kind=8) :: f1,a1,sn1 !efekt instrumentalny w 1
 	real(kind=8) :: fp2,ap2,snp2 !w pobliżu 2f
 	real(kind=8) :: fx,ax,snx !w szukanym zakresie, szukana czestosc X
+	real(kind=8) :: lastBlFreq=0.0
 	
 	real :: r ! rozdzielczosc
 	
-	logical :: ifZo,ifMod,ifAl,ifBlazko,ifRem,ifTrend,ifSignalAt2,ifAny,tooManyPeaks=.false.
+	logical :: ifZo,ifMod,ifAl,ifBlazko,ifRem,ifTrend,ifSignalAt2,ifAny,tooManyPeaks=.false.,newCalc=.false.
+	logical :: blazkoF=.false.,modF=.false.,remF=.false.,trendF=.false.,zoF=.false.,p2F=.false.
 
-call get_arg (star,period,f,r)
+call get_arg (star,period,periodChar,f,r)
 
 write (*,*) 'get_arg ok'
 call text(star)
@@ -45,73 +48,105 @@ write (*,*) 'flags initiated'
 call freqIni(freqToFit,f)
 write (*,*) 'frequency table and first intput file initiated'
 
+ifBlazko=.true.
+do while (ifBlazko.eqv..true.)
+	trendF=.false.
+	p2F=.false.
+	callFdecomp=1
+	ifTrend=.true.
+	do while ((callFdecomp.le.2).and.(ifTrend.eqv..true.))
+		call system ('rm '//trim(fileName))
+		if (callFdecomp.ne.1) deallocate (fs)
+		call system ('fdecomp komendy.exec')
+		write (*,*) 'fdecomp ok'
+		write (*,*) 'prepared file ',trim(fileName)
+		call get_file(fileName,fileNumber,fs,nrows)
+		write (*,*) 'data written to the table'
 
-callFdecomp=1
-ifTrend=.true.
-do while ((callFdecomp.le.2).and.(ifTrend.eqv..true.))
-	call system ('rm '//trim(fileName))
-	if (callFdecomp.ne.1) deallocate (fs)
-	call system ('fdecomp komendy.exec')
-	write (*,*) 'fdecomp ok'
-	write (*,*) 'prepared file ',trim(fileName)
-	call get_file(fileName,fileNumber,fs,nrows)
-	write (*,*) 'data written to the table'
+		write (*,*) '>> Looking for trend...'
+		call trend(fs,nrows,ft,at,snt,r,ifTrend)		!max dla malych czestotliwosci f<0.003
+		if (ifTrend.eqv..true.) then
+			write (*,*) 'There is signal for low frequencies (trend)'
+			if (callFdecomp.eq.1) then
+				write (*,*) 'adding secular term'
+				call addFreq(dble(0.00002),freqToFit)
+				call inputFile(freqToFit)
+			end if
+			if (callFdecomp.eq.2) then
+				trendF=.true.
+				write (*,*) 'Unable to remove trend, ignoring aliases'
+				call ignoreAliases(fs,nrows,ft,r)
+			end if
+				
+			callFdecomp=callFdecomp+1
+		else
+			write (*,*) 'No trend'
+		end if
+	end do
 
-	write (*,*) 'Looking for trend...'
-	call trend(fs,nrows,ft,at,snt,r,ifTrend)		!max dla malych czestotliwosci f<0.003
-	if (ifTrend.eqv..true.) then
-		write (*,*) 'There is signal for low frequencies (trend)'
-		if (callFdecomp.eq.1) then
-			write (*,*) 'adding secular term'
-			call addFreq(dble(0.00002),freqToFit)
-			call inputFile(freqToFit)
-		end if
-		if (callFdecomp.eq.2) then
-			write (*,*) 'Unable to remove trend, ignoring aliases'
-			call ignoreAliases(fs,nrows,ft,r)
-		end if
-			
-		callFdecomp=callFdecomp+1
-	else
-		write (*,*) 'No trend'
+	write (*,*) '>> Looking for signal at frequency = 2'
+	call signalAt2 (fs,nrows,f2,a2,sn2,r,ifSignalAt2)		!pik w okolicach 2
+	if (ifSignalAt2.eqv..true.) then
+		p2F=.true.
+		write (*,*) 'There is signal at 2, ignoring aliases'
+		call ignoreAliases(fs,nrows,f2,r)
+	else if (ifSignalAt2.eqv..false.) then
+		write (*,*) 'No signal at 2'
 	end if
+
+
+	countPeaks=0
+	do
+		write (*,*) '>> Looking for signal near f0'
+		if (lastBlFreq.ne.0.0) then
+			fmax=max(f+2*abs(f-fp)+r,f+0.2)
+			fmin=min(f-2*abs(f-fp)-r,f-0.2)
+		else
+			fmin=dble(f-0.2)
+			fmax=dble(f+0.2)
+		end if
+		call pik_gl (fs,nrows,fp,ap,snp,f,fmin,fmax,r,ifZo,ifBlazko,ifAny)			!max w poblizu piku glownego - sprawdzanie czy efekt Blazki lub zmiana okresu
+		countPeaks=countPeaks+1
+		if (countPeaks.gt.7) then
+			write (*,*) 'Reached maximum number od peaks near f0 (7). No further analysis is usefull.'
+			tooManyPeaks=.true.
+			exit
+		end if
+		if (ifAny.eqv..true.) then
+			if (ifZo.eqv..true.) then
+				zoF=.true.
+				write (*,*) 'There is unresolved signal near f0, ignoring aliases'
+				call ignoreAliases(fs,nrows,fp,r)
+			else if (ifBlazko.eqv..true.) then
+				blazkoF=.true.
+				write (*,*) 'There is Blazko effect'
+				if (abs(fp-lastBlFreq).lt.r) then
+					write (*,*) 'Unable to remove frequency of Blazko effect, ignoring aliases' 
+					call ignoreAliases(fs,nrows,fp,r)
+				else
+					write (*,*) 'Adding new frequency and recalculating...'
+					lastBlFreq=fp
+					call addFreq(fp,freqToFit)
+					call inputFile(freqToFit)
+					exit
+				end if
+			end if
+		else if (ifAny.eqv..false.) then
+			write (*,*) 'No significant signal near f0'
+			exit
+		end if
+	end do
 end do
 
-write (*,*) 'Looking for signal at frequency = 2'
-call signalAt2 (fs,nrows,f2,a2,sn2,r,ifSignalAt2)		!pik w okolicach 2
-if (ifSignalAt2.eqv..true.) then
-	write (*,*) 'There is signal at 2, ignoring aliases'
-	call ignoreAliases(fs,nrows,f2,r)
-else if (ifSignalAt2.eqv..false.) then
-	write (*,*) 'No signal at 2'
+write (*,*) '>> Looking for non-radial mode...'
+call szukaj_px (fs,nrows,fx,ax,snx,f,r,ifMod,ifAl) 				!max w szukanym zakresie
+if (ifMod.eqv..true.) then
+	modF=.true.
+	write (*,*) 'Found a candidate'
+else
+	write (*,*) 'No interesting signal'
 end if
 
-
-countPeaks=0
-do
-	write (*,*) 'Looking for signal near f0'
-	fmin=dble(f-0.2)
-	fmax=dble(f+0.2)
-	call pik_gl (fs,nrows,fp,ap,snp,f,fmin,fmax,r,ifZo,ifBlazko,ifAny)			!max w poblizu piku glownego - sprawdzanie czy efekt Blazki lub zmiana okresu
-	countPeaks=0
-	if (countPeaks.gt.20) then
-		tooManyPeaks=.true.
-		exit
-	end if
-	if (ifAny.eqv..true.) then
-		if (ifZo.eqv..true.) then
-			write (*,*) 'There is unresolved signal near f0, ignoring aliases'
-			call ignoreAliases(fs,nrows,fp,r)
-		else if (ifBlazko.eqv..true.) then
-			write (*,*) 'There is Blazko effect'
-		end if
-	else if (ifAny.eqv..false.) then
-		write (*,*) 'No significant signal near f0'
-		exit
-	end if
-end do
-
-!call szukaj_px (fs,nrows,fx,ax,snx,f,r,ifMod,ifAl) 				!max w szukanym zakresie
 
 !fragment do testowania
 !open (50,file='ppp.txt')
@@ -124,6 +159,6 @@ end do
 deallocate(fs)
 close(fileNumber)
 
-!call flagi(f,fx,fileName,periodChar,czy_al,czy_bl,czy_mod,czy_p2,czy_trend,czy_zo)
+call flagi(f,fx,star,periodChar,blazkoF,modF,zoF,remF,trendF,p2F,outputFile)
 
 end program res3
