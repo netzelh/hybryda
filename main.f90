@@ -132,6 +132,7 @@ do while (ifBlazko.eqv..true.)
 						write (*,*) 'Too many frequencies to add, No further analysis is usefull, ignoring aliases'
 						call ignoreAliases(fs,nrows,fp,r)
 						exit
+					end if
 					call inputFile(freqToFit)
 					exit
 				end if

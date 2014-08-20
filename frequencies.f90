@@ -139,7 +139,7 @@ implicit none
 	real(kind=8) :: freq
 	integer :: nfreq, i
 	type(fit), dimension(9) :: freqToFit
-	logical :: tooManyBlazko
+	logical :: tooManyAdded
 	
 tooManyAdded=.false.
 if (freq.eq.0.00002) then
