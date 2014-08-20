@@ -52,7 +52,7 @@ implicit none
 !	end if
 	
 	if (outputFile.eq.' ') then
-		write (*,*) line
+		write (*,*) trim(line)
 	else
 		call system('echo " '//trim(line)//' " >> '//trim(outputFile))
 	end if
