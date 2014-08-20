@@ -34,7 +34,7 @@ implicit none
 	real :: r ! rozdzielczosc
 	
 	logical :: ifZo,ifMod,ifAl,ifBlazko,ifRem,ifTrend,ifSignalAt2,ifAny,tooManyPeaks=.false.,newCalc=.false.
-	logical :: blazkoF=.false.,modF=.false.,remF=.false.,trendF=.false.,zoF=.false.,p2F=.false.
+	logical :: blazkoF=.false.,modF=.false.,remF=.false.,trendF=.false.,zoF=.false.,p2F=.false.,blazkoLeftF=.false.
 	logical :: tooManyAdded
 
 call get_arg (star,period,periodChar,f,r)
@@ -131,6 +131,7 @@ do while (ifBlazko.eqv..true.)
 					if (tooManyAdded) then
 						write (*,*) 'Too many frequencies to add, No further analysis is usefull, ignoring aliases'
 						call ignoreAliases(fs,nrows,fp,r)
+						blazkoLeftF=.true.
 						exit
 					end if
 					call inputFile(freqToFit)
@@ -166,6 +167,6 @@ end if
 deallocate(fs)
 close(fileNumber)
 
-call flagi(f,fx,star,periodChar,blazkoF,modF,zoF,remF,trendF,p2F,outputFile)
+call flagi(f,fx,star,periodChar,blazkoF,modF,zoF,remF,trendF,p2F,blazkoLeftF,outputFile)
 
 end program res3

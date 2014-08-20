@@ -3,12 +3,12 @@ implicit none
 
 CONTAINS
 
-SUBROUTINE flagi(f,fx,star,periodChar,blazkoF,modF,zoF,remF,trendF,p2F,outputFile)
+SUBROUTINE flagi(f,fx,star,periodChar,blazkoF,modF,zoF,remF,trendF,p2F,blazkoLeftF,outputFile)
 implicit none
 
 	character (len=*) :: star,outputFile,periodChar
 	real (kind=8) :: f,fx
-	logical :: blazkoF,modF,zoF,remF,trendF,p2F
+	logical :: blazkoF,modF,zoF,remF,trendF,p2F,blazkoLeftF
 
 	character (len=500) :: line,pom
 	character (len=20) :: sx_ch
@@ -46,10 +46,10 @@ implicit none
 		line=trim(pom)//" MOD "
 	end if
 	
-!	if (czy_al) then
-!		pom=line
-!		line=trim(pom)//" AL "
-!	end if
+	if (blazkoLeftF) then
+		pom=line
+		line=trim(pom)//" BLLeft "
+	end if
 	
 	if (outputFile.eq.' ') then
 		write (*,*) trim(line)
