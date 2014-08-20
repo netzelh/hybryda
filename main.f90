@@ -4,9 +4,9 @@ use pik
 use frequencies
 implicit none
 
-	character (len=30) :: fileName,star
-	character (len=30) :: outputFile=' '
 	character (len=30) :: periodChar
+	character (len=50) :: fileName=' ',star=' '
+	character (len=50) :: outputFile=' '
 	character (len=500) :: sys 
 	
 	integer :: fileNumber=10 
@@ -37,11 +37,10 @@ implicit none
 	logical :: blazkoF=.false.,modF=.false.,remF=.false.,trendF=.false.,zoF=.false.,p2F=.false.
 
 call get_arg (star,period,periodChar,f,r)
-
-write (*,*) 'get_arg ok'
+write (*,*) 'got arg for star: ',trim(star)
 call text(star)
 fileName=trim(star)//'.res'
-write (*,*) 'changed name ok'
+write (*,*) 'changed name: ',trim(fileName)
 call flagIni(ifZo,ifMod,ifAl,ifBlazko,ifRem)
 call trendIni(ifTrend,ifSignalAt2)
 write (*,*) 'flags initiated'
@@ -142,7 +141,7 @@ write (*,*) '>> Looking for non-radial mode...'
 call szukaj_px (fs,nrows,fx,ax,snx,f,r,ifMod,ifAl) 				!max w szukanym zakresie
 if (ifMod.eqv..true.) then
 	modF=.true.
-	write (*,*) 'Found a candidate'
+	write (*,*) 'Found a candidate!'
 else
 	write (*,*) 'No interesting signal'
 end if
