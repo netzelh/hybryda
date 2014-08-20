@@ -142,6 +142,7 @@ do while (ifBlazko.eqv..true.)
 			exit
 		end if
 	end do
+	if (tooManyAdded) exit
 end do
 
 write (*,*) '>> Looking for non-radial mode...'
