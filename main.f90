@@ -35,6 +35,7 @@ implicit none
 	
 	logical :: ifZo,ifMod,ifAl,ifBlazko,ifRem,ifTrend,ifSignalAt2,ifAny,tooManyPeaks=.false.,newCalc=.false.
 	logical :: blazkoF=.false.,modF=.false.,remF=.false.,trendF=.false.,zoF=.false.,p2F=.false.
+	logical :: tooManyAdded
 
 call get_arg (star,period,periodChar,f,r)
 write (*,*) 'got arg for star: ',trim(star)
@@ -68,7 +69,7 @@ do while (ifBlazko.eqv..true.)
 			write (*,*) 'There is signal for low frequencies (trend)'
 			if (callFdecomp.eq.1) then
 				write (*,*) 'adding secular term'
-				call addFreq(dble(0.00002),freqToFit)
+				call addFreq(dble(0.00002),freqToFit,tooManyAdded)
 				call inputFile(freqToFit)
 			end if
 			if (callFdecomp.eq.2) then
@@ -107,8 +108,9 @@ do while (ifBlazko.eqv..true.)
 		call pik_gl (fs,nrows,fp,ap,snp,f,fmin,fmax,r,ifZo,ifBlazko,ifAny)			!max w poblizu piku glownego - sprawdzanie czy efekt Blazki lub zmiana okresu
 		countPeaks=countPeaks+1
 		if (countPeaks.gt.7) then
-			write (*,*) 'Reached maximum number od peaks near f0 (7). No further analysis is usefull.'
+			write (*,*) 'Reached maximum number od peaks near f0 (7). No further analysis is usefull, ignoring aliases'
 			tooManyPeaks=.true.
+			call ignoreAliases(fs,nrows,fp,r)
 			exit
 		end if
 		if (ifAny.eqv..true.) then
@@ -125,7 +127,11 @@ do while (ifBlazko.eqv..true.)
 				else
 					write (*,*) 'Adding new frequency and recalculating...'
 					lastBlFreq=fp
-					call addFreq(abs(fp-f),freqToFit)
+					call addFreq(abs(fp-f),freqToFit,tooManyAdded)
+					if (tooManyAdded) then
+						write (*,*) 'Too many frequencies to add, No further analysis is usefull, ignoring aliases'
+						call ignoreAliases(fs,nrows,fp,r)
+						exit
 					call inputFile(freqToFit)
 					exit
 				end if

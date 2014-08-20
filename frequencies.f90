@@ -133,17 +133,20 @@ end subroutine
 
 !....................................................
 
-subroutine addFreq(freq,freqToFit)
+subroutine addFreq(freq,freqToFit,tooManyAdded)
 implicit none
 	
 	real(kind=8) :: freq
 	integer :: nfreq, i
 	type(fit), dimension(9) :: freqToFit
+	logical :: tooManyBlazko
 	
+tooManyAdded=.false.
 if (freq.eq.0.00002) then
 	freqToFit(2)%freq=0.00002
 	freqToFit(2)%exst=.true.
 else
+	if (freqToFit(9)%exst.eqv..true.) tooManyAdded=.true.
 	do i=3,9
 		if (freqToFit(i)%exst.eqv..false.) then
 			freqToFit(i)%freq=freq
