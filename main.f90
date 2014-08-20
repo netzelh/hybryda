@@ -125,7 +125,7 @@ do while (ifBlazko.eqv..true.)
 				else
 					write (*,*) 'Adding new frequency and recalculating...'
 					lastBlFreq=fp
-					call addFreq(fp,freqToFit)
+					call addFreq(abs(fp-f),freqToFit)
 					call inputFile(freqToFit)
 					exit
 				end if
