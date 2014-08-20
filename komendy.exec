@@ -1,7 +1,0 @@
- read a OGLE-BLG-RRLYR-09305.dat 3 1 2             
-f=3.3008747318039280
-g=3.3014121439455115
- fitfl a lista.fre                                 
- dft a 0 10 10 res                                 
- writefs a OGLE-BLG-RRLYR-09305.res                
- exit                                              

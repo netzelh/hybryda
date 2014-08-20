@@ -1,6 +1,0 @@
-read a OGLE-BLG-RRLYR-08660.dat 3 1 2                                           
-dft a 0 10 10                                                                   
-perfs a                                                                         
-fd a 10                                                                         
-fd a 5                                                                          
-dft a 0 10 10 res                                                               
