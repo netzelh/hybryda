@@ -6,7 +6,7 @@ implicit none
 CONTAINS
 
 
-subroutine pik2(fs,n,f2,a2,sn2,r,czy_p2)
+subroutine signalAt2(fs,n,f2,a2,sn2,r,czy_p2)
 !#################################################
 !#                                               #
 !# Procedura wyszukuje maksimum w pobliżu f=2    #
@@ -25,7 +25,6 @@ implicit none
 	integer      :: n !liczba wierszy
 	real(kind=8) :: f2,a2,sn2
 	real         :: r ! rozdzielczosc
-	real         :: d=1.0027 ! doba
 	integer :: i,j,k
 	logical :: czy_p2
 			
@@ -33,10 +32,8 @@ implicit none
 	call maximum(fs,n,f2,a2,dble(1.98),dble(2.02),k)
 	if (SNR(fs,n,f2,0.2).gt.4.0) then
 		czy_p2=.true.
-		do j=1,9
-			call aliasy_roczne(fs,n,f2+(j-1)*d,r,2.0)
-		end do 
-		call aliasy_dobowe (fs,n,f2,r)
+	else
+		czy_p2=.false.
 	end if
 
 end subroutine
@@ -64,47 +61,30 @@ implicit none
 
 end subroutine
 
-subroutine pik_gl(fs,n,fp,ap,snp,f,r,czy_zo,czy_bl)
+subroutine pik_gl(fs,n,fp,ap,snp,f,fmin,fmax,r,czy_zo,czy_bl,ifAny)
 implicit none
 
 	real(kind=8), dimension (:,:), allocatable :: fs
-	real (kind=8) :: fp,ap,snp,f,fmin,fmax
+	real (kind=8) :: fp,ap,snp,fmin,fmax,f
 	real :: r
 	integer :: n,k
-	logical :: czy_zo, czy_bl
+	logical :: czy_zo, czy_bl, ifAny
 
-	fmin=f-0.2
-	fmax=f+0.2
+	
 
-	do
 		call maximum(fs,n,fp,ap,fmin,fmax,k)
 		if (SNR(fs,n,fp,0.2).gt.4.0) then
+			ifAny=.true.
 			if (abs(fp-f).lt.r) then
-			!write (*,*) fp,snp,'Zmiana okresu',1/(f-fp)
-				czy_zo=.true.
-				call aliasy_dobowe	(fs,n,fp,r)
-				call aliasy_roczne (fs,n,fp,r,3.0)			
+				czy_zo=.true.		
 			else
-			!	write(*,*) fp,snp,'Blazko? Osobna analiza',1/(f-fp)
-				!write (pom2,*) 1/(f-fp)
-				!pom = trim(bl)
-				!bl = trim(pom)//trim(pom2)
-				if (fs(3,k).ne.3.0) then
-					czy_bl=.true.
-					!write (pom2,*) 1/(f-fp)
-					!pom = trim(bl)
-					!bl = trim(pom)//trim(pom2)
-				end if
-				call aliasy_roczne (fs,n,fp,r,3.0) 
-				call aliasy_dobowe (fs,n,fp,r)
-				fmax=max(f+2*abs(f-fp)+r,f+0.2)
-				fmin=min(f-2*abs(f-fp)-r,f-0.2)
+				czy_bl=.true.
+		!		fmax=max(f+2*abs(f-fp)+r,f+0.2)
+		!		fmin=min(f-2*abs(f-fp)-r,f-0.2)
 			end if
 		else
-			exit
+			ifAny=.false.
 		end if
-		
-	end do
 
 end subroutine
 
@@ -126,26 +106,12 @@ implicit none
 	call maximum(fs,n,ft,at,dble(0.0),dble(0.003),k)
 	if (SNR(fs,n,ft,0.2).gt.4.0) then
 		czy_trend=.true.
-
+	else
+		czy_trend=.false.
 	end if
 
 end subroutine
 
-subroutine ignoreAliases(fs,n,freq,r)
-implicit none
-
-	integer :: j, n
-	real :: day=1.0027
-	real :: r
-	real(kind=8) :: freq
-	real(kind=8), dimension(:,:), allocatable :: fs
-
-	do j=1,9
-		call aliasy_roczne(fs,n,freq+(j-1)*day,r,2.0)
-	end do 
-	call aliasy_dobowe (fs,n,freq,r)
-
-end subroutine
 
 
 

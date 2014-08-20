@@ -2,6 +2,23 @@ MODULE tools
 implicit none
 
 CONTAINS
+!...........................................................
+subroutine ignoreAliases(fs,n,freq,r)
+implicit none
+
+	integer :: j, n
+	real :: day=1.0027
+	real :: r
+	real(kind=8) :: freq
+	real(kind=8), dimension(:,:), allocatable :: fs
+
+	do j=1,9
+		call aliasy_roczne(fs,n,freq+(j-1)*day,r,2.0)
+	end do 
+	call aliasy_dobowe (fs,n,freq,r)
+
+end subroutine
+!...........................................................
 
 SUBROUTINE aliasy_roczne (fs,n,freq,r,s)	!wszystkie czestosci w odleglosci [freq,freq+almax] sa zaznaczone jako niepewne (2.0) 
 implicit none
@@ -22,8 +39,7 @@ implicit none
 	end do
 
 end subroutine
-
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!...........................................................
 
 SUBROUTINE flagIni(ifZo,ifMod,ifAl,ifBlazko,ifRem)
 implicit none
@@ -34,7 +50,7 @@ ifZo=.false.; ifMod=.false.; ifAl=.false.; ifBlazko=.false.; ifRem=.false.
 
 end subroutine
 
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!...........................................................
 
 SUBROUTINE trendIni(ifTrend,ifSignalAt2)
 implicit none
@@ -45,7 +61,7 @@ ifTrend=.false.; ifSignalAt2=.false.
 
 end subroutine
 
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!...........................................................
 
 SUBROUTINE aliasy_dobowe(fs,n,freq,r)
 
@@ -65,7 +81,7 @@ SUBROUTINE aliasy_dobowe(fs,n,freq,r)
 
 end subroutine
 
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!...........................................................
 
 SUBROUTINE maximum (fs,n,freqmax,ampmax,fmin,fmax,k)
 implicit none
@@ -91,7 +107,7 @@ implicit none
 
 end subroutine
 
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!...........................................................
 
 real FUNCTION SNR(fs,n,freq,box)
 implicit none

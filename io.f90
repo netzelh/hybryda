@@ -100,8 +100,7 @@ end subroutine
 SUBROUTINE get_file(plik,fileNumber,fs,n)
 implicit none
 
-	character (len=*) :: plik
-
+	character (len=30) :: plik
 	real(kind=8), dimension (:,:), allocatable :: fs
 	integer :: fileNumber  !file number
 	integer :: n !liczba wierszy
@@ -109,8 +108,11 @@ implicit none
 	open(fileNumber,file=plik)
 	write (*,*) 'Plik: ',plik
 	n=ile_wierszy(fileNumber)
+	write (*,*) n,'rows to read'
 	allocate (fs(3,n)) !1-freq,2-amp,3-zero/jeden
 	call getp(fs,fileNumber,n)
+	
+	close (fileNumber)
 
 end subroutine
 
@@ -123,10 +125,13 @@ implicit none
 	integer :: fileNumber,n
 	integer :: i
 	
+	write (*,*) 'getting data...'
 	do i=1,n
 		read(fileNumber,*) fs(1,i),fs(2,i)
 		fs(3,i)=1.0
 	end do
+	
+
 	
 !	write (*,*) 'OK, wczytano dane do programu'
 	
